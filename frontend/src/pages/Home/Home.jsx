@@ -29,6 +29,7 @@ import supelle from "../../images/home/supelle.png"
 import greenDollar from '../../images/home/greenDollar.png'
 import eth from '../../images/home/eth.png'
 import iconBlue from "../../images/home/iconBlue.png"
+import VSG from "../../images/home/VSG.png"
 
 import { Button, Hero, Section } from '../../Utilities'
 import { formatTimestampToDateString } from '../../common/methods'
@@ -41,8 +42,8 @@ import { socket } from "../../App";
 import "./Home.css"
 
 
-const buyModes = ["byETH", "byUSDT"];
-const definedPresalePrices = [0.45, 0.55, 0.6, 0.75, 0.8];
+const buyModes = ["byETH", "byVSG"];
+const definedPresalePrices = [0.00006, 0.000075, 0.00009];
 
 function Home() {
     const { isLoading: isSwitchingLoading, switchNetwork } = useSwitchNetwork()
@@ -60,7 +61,7 @@ function Home() {
     const [minPerWalletOfPhase, setMinPerWalletOfPhase] = useState(0);
     const [maxPerWalletOfPhase, setMaxPerWalletOfPhase] = useState(0);
 
-    const [buyMode, setBuyMode] = useState(buyModes[0]);
+    const [buyMode, setBuyMode] = useState(buyModes[1]);
     const [countdown, setCountDown] = useState(0);
     const [inputAmount, setInputAmount] = useState(0);
     const [outputAmount, setOutputAmount] = useState(0);
@@ -70,7 +71,7 @@ function Home() {
     const [approvingTxHash, setApprovingTxHash] = useState("");
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
-    
+    const chainId = 97;
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -96,30 +97,31 @@ function Home() {
     useEffect(() => {
         const supAmount = buyMode === "byETH" ?
             debouncedInputAmount * ethPrice / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100)) :
-            buyMode === "byUSDT" ?
+            buyMode === "byVSG" ?
                 debouncedInputAmount * usdtPrice / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100))
                 :
                     Math.floor(debouncedInputAmount / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100)));
         setOutputAmount(supAmount);
+        console.log('Debounce = ', debouncedInputAmount, definedPresalePrices[0] / 100);
     }, [debouncedInputAmount]);
 
     const { data: currentPhaseIndex } = useContractRead({
         address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
         abi: PresalePlatformABI,
-        functionName: 'activePhase',
+        functionName: 'activeTier',
         enabled: true,
         watch: true,
-        chainId: 5
+        chainId: chainId
     });
 
     const { data: activePhaseStatus } = useContractRead({
         address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
         abi: PresalePlatformABI,
-        functionName: 'phases',
+        functionName: 'tiers',
         enabled: true,
         args: [currentPhaseIndex],
         watch: true,
-        chainId: 5
+        chainId: chainId
     })
 
     const { data: userPaidUSDT } = useContractRead({
@@ -129,14 +131,17 @@ function Home() {
         args: [currentPhaseIndex, address],
         enabled: true,
         watch: true,
-        chainId: 5
+        chainId: chainId
     });
 
     useEffect(() => {
         if (!activePhaseStatus) return;
 
         setMaxAmountOfPhase(formatEther(activePhaseStatus[0]?.toString()));
-        setSoldAmountOfPhase(formatEther(activePhaseStatus[6]?.toString()));
+        setPresalePriceOfPhase(formatUnits(activePhaseStatus[1]?.toString(), 6));
+        setStartTime(activePhaseStatus[2]);
+        setEndTime(activePhaseStatus[3]);
+        setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
         setStartTime(activePhaseStatus[4]);
         setTargetDate(new Date(parseInt(activePhaseStatus[5]) * 1000));
         setEndTime(activePhaseStatus[5]);
@@ -166,7 +171,7 @@ function Home() {
         
         try {
             if (buyMode === buyModes[0]) {
-                if (chain.id !== 5) {
+                if (chain.id !== chainId) {
                     toast.warning("This platform works on Goerli network for ETH payment. Please change the network of your wallet into Goerli and try again. ");
                     return;
                 }
@@ -191,8 +196,8 @@ function Home() {
             }
 
             if (buyMode === buyModes[1]) {
-                if (chain.id !== 5) {
-                    toast.warning("This platform works on Goerli network for USDT payment. Please change the network of your wallet into Goerli and try again. ");
+                if (chain.id !== chainId) {
+                    toast.warning("This platform works on BSC Testnet network for VSG payment. Please change the network of your wallet into BSC Testnte and try again. ");
                     return;
                 }
 
@@ -313,7 +318,7 @@ function Home() {
 
                 <Hero centerContent={true} expand={true} className={"container-fluid justify-center"} >
                     <div className="row w-100 mx-auto justify-content-between align-items-center">
-                        <div className="col-md-5">
+                        <div className="col-md-4 mx-auto">
                             <div className="buy-section text-center text-light ml-md-auto">
                                 <h6 className="bold">SECURE YOUR PURCHASE BEFORE PRICE INCREASE!</h6>
                                 <h6 className="text-primary mt-3 bold">SALE {
@@ -353,11 +358,11 @@ function Home() {
                                 </div>
 
                                 <h5 className="mt-3 bold">AMOUNT RAISED:  ${Number(parseFloat(soldAmountOfPhase) * parseFloat(presalePriceOfPhase))?.toFixed(2)}</h5>
-                                <p className="mt-2">1 SUP = {parseFloat(presalePriceOfPhase)} USD</p>
-                                <p style={{ margin: 0, padding: 0 }} >1 ETH = {parseFloat(ethPrice)?.toFixed(4)} USD</p>
+                                <p className="mt-2">1 XTA = {parseFloat(presalePriceOfPhase)} USD</p>
+                                {/* <p style={{ margin: 0, padding: 0 }} >1 ETH = {parseFloat(ethPrice)?.toFixed(4)} USD</p> */}
 
                                 <div className="gateway">
-                                    <div className="method"
+                                    {/* <div className="method"
                                         style={{
                                             outline: buyMode === buyModes[0] ? "1px white solid" : "none"
                                         }}
@@ -370,8 +375,8 @@ function Home() {
                                     >
                                         <img src={eth} alt="" className="w-100 method-img" style={{ width: "26px", height: "26px" }} />
                                         <p className="m-0 bold">ETH</p>
-                                    </div>
-                                    <div className="method"
+                                    </div> */}
+                                    {/* <div className="method"
                                         style={{
                                             outline: buyMode === buyModes[1] ? "1px white solid" : "none"
                                         }}
@@ -382,9 +387,9 @@ function Home() {
                                             switchToChain(goerli.id);
                                         }}
                                     >
-                                        <img src={usdt} alt="" className="w-100 method-img" style={{ width: "24px", height: "24px" }} />
-                                        <p className="m-0 bold">USDT</p>
-                                    </div>
+                                        <img src={VSG} alt="" className="w-100 method-img" style={{ width: "24px", height: "24px" }} />
+                                        <p className="m-0 bold">VSG</p>
+                                    </div> */}
                                 </div>
 
                                 <div className="buy-form text-left"
@@ -398,7 +403,7 @@ function Home() {
                                             buyMode === "byETH" && "ETH"
                                         }
                                             {
-                                                buyMode === "byUSDT" && "USDT"}
+                                                buyMode === "byVSG" && "VSG"}
                                             {
                                                 buyMode === "byCard" && "Card"
                                             }
@@ -412,15 +417,15 @@ function Home() {
                                                 buyMode === "byETH" ?
                                                     <img src={eth} alt="" style={{ width: "20px", height: "20px", marginRight: "4px" }} />
                                                     :
-                                                    buyMode === "byUSDT" ?
-                                                        <img src={usdt} alt="" style={{ width: "18px", height: "18px", marginRight: "4px" }} />
+                                                    buyMode === "byVSG" ?
+                                                        <img src={VSG} alt="" style={{ width: "18px", height: "18px", marginRight: "4px" }} />
                                                         :
                                                             <img src={greenDollar} style={{ width: "26px", height: "26px", marginRight: "4px" }} alt="" />
                                             }
                                         </div>
                                     </div>
                                     <div className="form-group">
-                                        <span>Amount in SUP you receive</span>
+                                        <span>Amount in XTA you receive</span>
                                         <div className="input d-flex">
                                             <input type="number" value={Number(outputAmount).toFixed(2)} id='sup' disabled />
                                             <img src={iconBlue} className="method-img" alt="" />
@@ -435,7 +440,7 @@ function Home() {
                                         buyMode === "byETH" && "ETH"
                                     }
                                     {
-                                        buyMode === "byUSDT" && "USDT"}
+                                        buyMode === "byVSG" && "VSG"}
                                     {
                                         buyMode === "byCard" && "Card"
                                     }
@@ -472,6 +477,19 @@ function Home() {
                                 }} >
                                     <div className="my-1">Listing Price 1$SUP = {process.env.REACT_APP_SUPCOIN_LISTING_PRICE}USDT</div>
                                     <div className="my-1">Min per wallet: {parseFloat(minPerWalletOfPhase)} USD</div>
+                                </div>
+
+                                <div className="input d-flex">
+                                    <input type="number" id='other' value={inputAmount} onChange={(e) => onChangeInputAmount(e.target.value)} />
+                                    {
+                                        buyMode === "byETH" ?
+                                            <img src={eth} alt="" style={{ width: "20px", height: "20px", marginRight: "4px" }} />
+                                            :
+                                            buyMode === "byVSG" ?
+                                                <img src={VSG} alt="" style={{ width: "18px", height: "18px", marginRight: "4px" }} />
+                                                :
+                                                    <img src={greenDollar} style={{ width: "26px", height: "26px", marginRight: "4px" }} alt="" />
+                                    }
                                 </div>
                             </div>
                         </div>

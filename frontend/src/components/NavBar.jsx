@@ -71,19 +71,19 @@ function NavBar({ isScrolled }) {
                     <div className='action-btns d-flex nav-link flex-nowrap ml-md-auto'>
                         <div style={{
                             border: "1px solid #fff",
-                            borderRadius: "10px"
+                            borderRadius: "10px",
                         }}>
-                            <Web3Button className="web3button" icon='hide' label='Connect Wallet' balance='hide'
+                            <Web3Button className="web3button" label='Connect Wallet' balance='hide'
                             />
                         </div>
                     </div>
 
-                    <div className="d-flex align-items-center side-nav justify-content-center ">
+                    {/* <div className="d-flex align-items-center side-nav justify-content-center ">
                         <Link href="#" className="nav-link">Sign In</Link>
                         <div className={`toggler transition ${toggle && "rotate"}`} onClick={() => { setToggle(pre => !pre) }}>
                             {toggle ? <FaTimes size={20} /> : <FaBars size={25} />}
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -174,7 +174,7 @@ function NavBar({ isScrolled }) {
                                     }}
                                 >
                                     {
-                                        (chain && chain.id !== 5) &&
+                                        (chain && chain.id !== 97) &&
                                         <div
                                             style={{
                                                 color: "rgb(239,83,80)",
@@ -182,10 +182,10 @@ function NavBar({ isScrolled }) {
                                                 fontWeight: 600,
                                                 textAlign: "center"
                                             }}
-                                        >Please change the network of your wallet into goerli. This platform works on Goerli network.</div>
+                                        >Please change the network of your wallet into BSC Testnet. This platform works on BSC Test network.</div>
                                     }
                                     {
-                                        (chain && chain.id === 5) &&
+                                        (chain && chain.id === 97) &&
                                         <div className="text-green-400 text-[16px] font-semibold text-center"
                                             style={{
                                                 color: "rgb(102,187,106)",

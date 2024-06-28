@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
@@ -138,14 +138,16 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
     * @dev Get latest VSG price from dex.
     * @param _amount VSG amount.
     */
-    function getLatestVSGPrice(uint256 _amount) public view returns (uint256) {
-        address[] memory path = new address[](3);
-        path[0] = address(VSG);
-        path[1] = address(router.WETH());
-        path[2] = address(USDT);
+    function getLatestVSGPrice(uint256 _amount) public pure returns (uint256) {
+        // address[] memory path = new address[](3);
+        // path[0] = address(VSG);
+        // path[1] = address(router.WETH());
+        // path[2] = address(USDT);
 
-        uint256[] memory price_out = router.getAmountsOut(_amount, path);
-        return price_out[2] / USDT_DECIMAL * USDT_DECIMAL;
+        // uint256[] memory price_out = router.getAmountsOut(_amount, path);
+        // return price_out[2] / USDT_DECIMAL * USDT_DECIMAL;
+        uint256 price_out = _amount * 1116 / VSG_DECIMAL;
+        return price_out;
     }
 
     /**
