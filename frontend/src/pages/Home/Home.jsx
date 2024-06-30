@@ -57,8 +57,8 @@ function Home() {
 
     const [maxAmountOfPhase, setMaxAmountOfPhase] = useState(0);
     const [soldAmountOfPhase, setSoldAmountOfPhase] = useState(0);
-    const [startTime, setStartTime] = useState(process.env.REACT_APP_SUPCOIN_PRESALE_START_DATE);
-    const [endTime, setEndTime] = useState(process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE);
+    const [startTime, setStartTime] = useState(process.env.REACT_APP_XTA_PRESALE_START_DATE);
+    const [endTime, setEndTime] = useState(process.env.REACT_APP_XTA_PRESALE_END_DATE);
     const [minPerWalletOfPhase, setMinPerWalletOfPhase] = useState(0);
     const [maxPerWalletOfPhase, setMaxPerWalletOfPhase] = useState(0);
 
@@ -72,7 +72,7 @@ function Home() {
     const [inputWithdrawAmount, setInputWithdrawAmount] = useState(0);
     const [debouncedInputAmount] = useDebounce(inputAmount, 100);
     const [working, setWorking] = useState(false);
-    const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE * 1000));
+    const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_XTA_PRESALE_END_DATE * 1000));
     const [approvingTxHash, setApprovingTxHash] = useState("");
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
@@ -332,7 +332,7 @@ function Home() {
             address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
             abi: PresalePlatformABI,
             functionName: 'setStartAndEndTime',
-            // args: [currentPhaseIndex, process.env.REACT_APP_SUPCOIN_PRESALE_START_DATE, process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE],
+            // args: [currentPhaseIndex, process.env.REACT_APP_XTA_PRESALE_START_DATE, process.env.REACT_APP_XTA_PRESALE_END_DATE],
             args: [inputTierNum - 1, startDate, endDate],
         });
     }
@@ -510,7 +510,7 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    <div className="my-1 mt-2">Presale Ends {formatTimestampToDateString(process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE)}</div>
+                                    <div className="my-1 mt-2">Presale Ends {formatTimestampToDateString(process.env.REACT_APP_XTA_PRESALE_END_DATE)}</div>
                                     {/* <div className="my-1 mt-2">You paid: {parseFloat(userPaidUSDT ? formatUnits(userPaidUSDT?.toString(), 6) : '0')?.toFixed(2)} USD</div> */}
                                     <div className="my-1 mt-2">You paid: {parseFloat(userPaidVSG ? formatUnits(userPaidVSG?.toString(), 18) : '0')?.toFixed(2)} VSG</div>
                                 </div>
