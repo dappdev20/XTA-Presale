@@ -15,7 +15,7 @@ import {
 } from 'wagmi';
 import { formatUnits, parseUnits, parseEther, formatEther } from "viem";
 import { mainnet, goerli, bsc, bscTestnet } from 'wagmi/chains';
-import { readContract } from '@wagmi/core'
+import { readContract, waitForTransaction } from '@wagmi/core'
 import { Backdrop, CircularProgress } from "@mui/material";
 import Web3 from "web3";
 
@@ -243,6 +243,10 @@ function Home() {
 
                     });
                     setApprovingTxHash(aproveHash);
+                    const txData = await waitForTransaction({
+                        hash: aproveHash,
+                    });
+                    console.log('Tx Data =', txData);
                 }
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
