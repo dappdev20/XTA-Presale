@@ -30,6 +30,7 @@ import greenDollar from '../../images/home/greenDollar.png'
 import eth from '../../images/home/eth.png'
 import iconBlue from "../../images/home/iconBlue.png"
 import VSG from "../../images/home/VSG.png"
+import XETA from "../../images/home/XTA Logo.jpg"
 
 import { Button, Hero, Section } from '../../Utilities'
 import { formatTimestampToDateString } from '../../common/methods'
@@ -43,7 +44,7 @@ import "./Home.css"
 
 
 const buyModes = ["byETH", "byVSG"];
-const definedPresalePrices = [0.00006, 0.000075, 0.00009];
+const definedPresalePrices = [0.006, 0.0075, 0.009];
 
 function Home() {
     const { isLoading: isSwitchingLoading, switchNetwork } = useSwitchNetwork()
@@ -64,7 +65,11 @@ function Home() {
     const [buyMode, setBuyMode] = useState(buyModes[1]);
     const [countdown, setCountDown] = useState(0);
     const [inputAmount, setInputAmount] = useState(0);
+    const [inputTierNum, setInputTierNum] = useState(1);
+    const [inputStartDate, setInputStartDate] = useState("2024-06-29");
+    const [inputEndDate, setInputEndDate] = useState("2024-07-04");
     const [outputAmount, setOutputAmount] = useState(0);
+    const [inputWithdrawAmount, setInputWithdrawAmount] = useState(0);
     const [debouncedInputAmount] = useDebounce(inputAmount, 100);
     const [working, setWorking] = useState(false);
     const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE * 1000));
@@ -95,14 +100,13 @@ function Home() {
     };
 
     useEffect(() => {
-        const supAmount = buyMode === "byETH" ?
+        const xtaAmount = buyMode === "byETH" ?
             debouncedInputAmount * ethPrice / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100)) :
             buyMode === "byVSG" ?
-                debouncedInputAmount * usdtPrice / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100))
+                debouncedInputAmount * Number(vsgPrice) / 1e6 / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100))
                 :
                     Math.floor(debouncedInputAmount / parseFloat(presalePriceOfPhase || (definedPresalePrices[0] / 100)));
-        setOutputAmount(supAmount);
-        console.log('Debounce = ', debouncedInputAmount, definedPresalePrices[0] / 100);
+        setOutputAmount(xtaAmount);
     }, [debouncedInputAmount]);
 
     const { data: currentPhaseIndex } = useContractRead({
@@ -134,29 +138,42 @@ function Home() {
         chainId: chainId
     });
 
+    const { data: userPaidVSG } = useContractRead({
+        address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+        abi: PresalePlatformABI,
+        functionName: 'getUserPaidVSG',
+        args: [currentPhaseIndex, address],
+        enabled: true,
+        watch: true,
+        chainId: chainId
+    });
+
+    const { data: vsgPrice } = useContractRead({
+        address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+        abi: PresalePlatformABI,
+        functionName: 'getLatestVSGPrice',
+        args: [1e18],
+        enabled: true,
+        watch: true,
+        chainId: chainId
+    });
+
+    const { data: ownerAddress } = useContractRead({
+        address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+        abi: PresalePlatformABI,
+        functionName: 'owner',
+        enabled: true,
+        watch: true,
+        chainId: chainId
+    });
+
     useEffect(() => {
         if (!activePhaseStatus) return;
-
         setMaxAmountOfPhase(formatEther(activePhaseStatus[0]?.toString()));
         setPresalePriceOfPhase(formatUnits(activePhaseStatus[1]?.toString(), 6));
         setStartTime(activePhaseStatus[2]);
         setEndTime(activePhaseStatus[3]);
         setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
-        setStartTime(activePhaseStatus[4]);
-        setTargetDate(new Date(parseInt(activePhaseStatus[5]) * 1000));
-        setEndTime(activePhaseStatus[5]);
-        console.log("startTIme >>> ", activePhaseStatus[4], " endTIme >>> ", activePhaseStatus[5]);
-        setPresalePriceOfPhase(formatUnits(activePhaseStatus[1]?.toString(), 6));
-        setMaxPerWalletOfPhase(formatUnits(activePhaseStatus[3]?.toString(), 6));
-        setMinPerWalletOfPhase(formatUnits(activePhaseStatus[2]?.toString(), 6));
-
-        console.log("activePhase >>> ", formatEther(activePhaseStatus[0]?.toString()),
-            formatEther(activePhaseStatus[6]?.toString()),
-            activePhaseStatus[4],
-            activePhaseStatus[5],
-            formatUnits(activePhaseStatus[1]?.toString(), 6),
-            Number(parseFloat(formatEther(activePhaseStatus[6]?.toString())) * 100 / parseFloat(formatEther(activePhaseStatus[0]?.toString())))?.toFixed(2) + "%"
-        );
     }, [activePhaseStatus]);
 
     const onClickBuy = async () => {
@@ -201,40 +218,37 @@ function Home() {
                     return;
                 }
 
-                console.log("debouncedInputAmount  >>> ", debouncedInputAmount);
-                if (parseFloat(debouncedInputAmount) > parseFloat(maxPerWalletOfPhase)) {
-                    toast.warn(`In this phrase of presale, maximum is ${parseInt(maxPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
-                    return;
-                }
-                if (parseFloat(debouncedInputAmount) < parseFloat(minPerWalletOfPhase)) {
-                    toast.warn(`In this phrase of presale, minimum is ${parseInt(minPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
-                    return;
-                }
+                // if (parseFloat(debouncedInputAmount) > parseFloat(maxPerWalletOfPhase)) {
+                //     toast.warn(`In this phrase of presale, maximum is ${parseInt(maxPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
+                //     return;
+                // }
+                // if (parseFloat(debouncedInputAmount) < parseFloat(minPerWalletOfPhase)) {
+                //     toast.warn(`In this phrase of presale, minimum is ${parseInt(minPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
+                //     return;
+                // }
                 setWorking(true);
 
                 const allowance = await readContract({
-                    address: process.env.REACT_APP_USDT_ADDRESS,
+                    address: process.env.REACT_APP_VSG_ADDRESS,
                     abi: TokenABI,
                     functionName: 'allowance',
                     args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                 })
-                console.log(allowance, parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 6)), parseFloat(outputAmount));
-                if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 6)) < parseFloat(outputAmount)) {
+                if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
                     const aproveHash = await walletClient.writeContract({
-                        address: process.env.REACT_APP_USDT_ADDRESS,
+                        address: process.env.REACT_APP_VSG_ADDRESS,
                         abi: TokenABI,
                         functionName: "approve",
-                        args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 6)], wallet: address,
+                        args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
 
                     });
                     setApprovingTxHash(aproveHash);
                 }
-
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
                     abi: PresalePlatformABI,
-                    functionName: 'buyTokensWithUSDT',
-                    args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 6)],
+                    functionName: 'buyTokensWithVSG',
+                    args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
                 });
                 setPresaleTxHash(presaleHash);
@@ -243,6 +257,16 @@ function Home() {
             console.error(err);
             setWorking(false);
         }
+    }
+
+    const onClickWithdraw = async () => {
+        const presaleHash = await walletClient.writeContract({
+            address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+            abi: PresalePlatformABI,
+            functionName: 'withdraw',
+            args: [parseUnits(inputWithdrawAmount !== undefined && inputWithdrawAmount?.toString(), 18)],
+
+        });
     }
 
     useEffect(() => {
@@ -270,7 +294,7 @@ function Home() {
                         setOutputAmount(0);
                         setWorking(false);
                         setPresaleTxHash(null);
-                        toast.success("You've successfully bought SUP coins.");
+                        toast.success("You've successfully bought XTA coins.");
                     } catch (err) {
                         setWorking(false);
                         setPresaleTxHash(null);
@@ -282,8 +306,35 @@ function Home() {
     }, [approvingTxHash, presaleTxHash])
 
     const onChangeInputAmount = (value) => {
-        console.log(parseFloat(value));
         setInputAmount(parseFloat(value));
+    }
+
+    const onChangeInputTierNum = (value) => {
+        setInputTierNum(parseFloat(value));
+    }
+
+    const onChangeInputStartDate = (value) => {
+        setInputStartDate(value);
+    }
+
+    const onChangeInputEndDate = (value) => {
+        setInputEndDate(value);
+    }
+
+    const onClickSetDate = async () => {
+        const startDate = new Date(inputStartDate).getTime() / 1000;
+        const endDate = new Date(inputEndDate).getTime() / 1000;
+        const presaleHash = await walletClient.writeContract({
+            address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+            abi: PresalePlatformABI,
+            functionName: 'setStartAndEndTime',
+            // args: [currentPhaseIndex, process.env.REACT_APP_SUPCOIN_PRESALE_START_DATE, process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE],
+            args: [inputTierNum - 1, startDate, endDate],
+        });
+    }
+
+    const onChangeInputWithdrawAmount = (value) => {
+        setInputWithdrawAmount(parseFloat(value));
     }
 
     const switchToChain = (targetChainId) => {
@@ -354,10 +405,10 @@ function Home() {
                                                 (parseInt(endTime) - parseInt(startTime)))?.toFixed(2) + "%" : "0%"
                                         }}></div>
                                     <p className="m-0 CARD-text"
-                                    >Until Price Increase to 1 SUP = {definedPresalePrices[parseInt(currentPhaseIndex) + 1]} USD</p>
+                                    >Until Price Increase to 1 XTA = {definedPresalePrices[parseInt(currentPhaseIndex) + 1]} USD</p>
                                 </div>
 
-                                <h5 className="mt-3 bold">AMOUNT RAISED:  ${Number(parseFloat(soldAmountOfPhase) * parseFloat(presalePriceOfPhase))?.toFixed(2)}</h5>
+                                <h5 className="mt-3 bold">AMOUNT RAISED:  {Number(parseFloat(soldAmountOfPhase))?.toFixed(2)} VSG</h5>
                                 <p className="mt-2">1 XTA = {parseFloat(presalePriceOfPhase)} USD</p>
                                 {/* <p style={{ margin: 0, padding: 0 }} >1 ETH = {parseFloat(ethPrice)?.toFixed(4)} USD</p> */}
 
@@ -428,7 +479,7 @@ function Home() {
                                         <span>Amount in XTA you receive</span>
                                         <div className="input d-flex">
                                             <input type="number" value={Number(outputAmount).toFixed(2)} id='sup' disabled />
-                                            <img src={iconBlue} className="method-img" alt="" />
+                                            <img src={XETA} className="method-img" alt="" />
                                         </div>
                                     </div>
                                 </div>
@@ -456,7 +507,8 @@ function Home() {
                                     fontSize: "14px"
                                 }} >
                                     <div className="my-1 mt-2">Presale Ends {formatTimestampToDateString(process.env.REACT_APP_SUPCOIN_PRESALE_END_DATE)}</div>
-                                    <div className="my-1 mt-2">You paid: {parseFloat(userPaidUSDT ? formatUnits(userPaidUSDT?.toString(), 6) : '0')?.toFixed(2)} USD</div>
+                                    {/* <div className="my-1 mt-2">You paid: {parseFloat(userPaidUSDT ? formatUnits(userPaidUSDT?.toString(), 6) : '0')?.toFixed(2)} USD</div> */}
+                                    <div className="my-1 mt-2">You paid: {parseFloat(userPaidVSG ? formatUnits(userPaidVSG?.toString(), 18) : '0')?.toFixed(2)} VSG</div>
                                 </div>
 
                                 <div style={{
@@ -465,8 +517,8 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    <div className="my-1">SUP DEX Listing {formatTimestampToDateString(process.env.REACT_APP_SUPCOIN_DEX_LISTING_DATE)}</div>
-                                    <div className="my-1 mt-2">Max per wallet: {parseFloat(maxPerWalletOfPhase)} USD</div>
+                                    {/* <div className="my-1">XTA DEX Listing {formatTimestampToDateString(process.env.REACT_APP_SUPCOIN_DEX_LISTING_DATE)}</div> */}
+                                    {/* <div className="my-1 mt-2">Max per wallet: {parseFloat(maxPerWalletOfPhase)} USD</div> */}
                                 </div>
 
                                 <div style={{
@@ -475,22 +527,49 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    <div className="my-1">Listing Price 1$SUP = {process.env.REACT_APP_SUPCOIN_LISTING_PRICE}USDT</div>
-                                    <div className="my-1">Min per wallet: {parseFloat(minPerWalletOfPhase)} USD</div>
+                                    {/* <div className="my-1">Listing Price 1$XTA = {process.env.REACT_APP_SUPCOIN_LISTING_PRICE}USDT</div> */}
+                                    {/* <div className="my-1">Min per wallet: {parseFloat(minPerWalletOfPhase)} USD</div> */}
                                 </div>
-
-                                <div className="input d-flex">
-                                    <input type="number" id='other' value={inputAmount} onChange={(e) => onChangeInputAmount(e.target.value)} />
-                                    {
-                                        buyMode === "byETH" ?
-                                            <img src={eth} alt="" style={{ width: "20px", height: "20px", marginRight: "4px" }} />
-                                            :
-                                            buyMode === "byVSG" ?
-                                                <img src={VSG} alt="" style={{ width: "18px", height: "18px", marginRight: "4px" }} />
-                                                :
-                                                    <img src={greenDollar} style={{ width: "26px", height: "26px", marginRight: "4px" }} alt="" />
-                                    }
-                                </div>
+                                {
+                                ownerAddress == address ? 
+                                    <div>
+                                        <div className="form-group" style={{
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            fontSize: "14px"
+                                        }}>
+                                            <div className="input">
+                                                <div className="my-1 mt-2">Current Tier</div>
+                                                <input type="number" id='tierNum' value={inputTierNum} onChange={(e) => onChangeInputTierNum(e.target.value)} />
+                                            </div>
+                                            <div className="input">
+                                                <div className="my-1 mt-2">Start Date</div>
+                                                <input type="date" id='startDate' name="startDate" value={inputStartDate} min="2024-01-01" onChange={(e) => onChangeInputStartDate(e.target.value)} />
+                                            </div>
+                                            <div className="input">
+                                                <div className="my-1 mt-2">End Date</div>
+                                                <input type="date" id='endDate' name="endDate" value={inputEndDate} min="2024-01-01" onChange={(e) => onChangeInputEndDate(e.target.value)}  />
+                                            </div>
+                                        </div>
+                                        <button className="btn btn-primary buy-btn btn-block"
+                                            onClick={() => onClickSetDate()}
+                                        >Set Start and End Date
+                                        </button>
+                                        <br></br>
+                                        <div className="form-group">
+                                            <div className="input">
+                                                <div className="my-1 mt-2">Amount</div>
+                                                <input type="number" id='withdrawAmount' value={inputWithdrawAmount} onChange={(e) => onChangeInputWithdrawAmount(e.target.value)} />
+                                            </div>
+                                        </div>
+                                        <button className="btn btn-primary buy-btn btn-block"
+                                            onClick={() => onClickWithdraw()}
+                                        >Withdraw
+                                        </button>
+                                    </div>
+                                : <div> </div>
+                                }
                             </div>
                         </div>
                     </div>

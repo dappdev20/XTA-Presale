@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FaBars, FaCaretRight, FaArrowUp, FaTimes } from "react-icons/fa"
-import logo from '../images/home/logo.png'
+import logo from "../images/home/xeta-03.png"
 import { UIContext } from '../context/UIcontext'
 import { useTranslation } from "react-i18next";
 import { Button } from '../Utilities';
@@ -71,7 +71,7 @@ function NavBar({ isScrolled }) {
                     <div className='action-btns d-flex nav-link flex-nowrap ml-md-auto'>
                         <div style={{
                             border: "1px solid #fff",
-                            borderRadius: "10px",
+                            borderRadius: "10px"
                         }}>
                             <Web3Button className="web3button" label='Connect Wallet' balance='hide'
                             />

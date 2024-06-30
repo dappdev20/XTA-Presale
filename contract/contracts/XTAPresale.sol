@@ -49,8 +49,9 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
     IRouter public router;
 
     // Address arrays and mappings for tracking user purchases
-    address[][] internal buyersInTiers;
-    mapping (address => uint256)[] internal userPaidUSD;
+    address[][MAX_TIER] internal buyersInTiers;
+    mapping (address => uint256)[MAX_TIER] internal userPaidUSD;
+    mapping (address => uint256)[MAX_TIER] internal userPaidVSG;
 
     // Events
     event Buy(address indexed _buyer, uint256 _amount, uint256 _tierNum);
@@ -83,6 +84,10 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
         }));
     }
 
+    function getTimeStamp() public view returns (uint256) {
+        return block.timestamp;
+    }
+
     /**
     * @notice Buy tokens with VSG.
     */
@@ -106,7 +111,7 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
 
         // Variables for handling max token purchase and refund scenarios
         bool isReachedMaxAmount;
-        uint256 buyTokenAmt = usdtAmount * TOKEN_DECIMAL / price;
+        uint256 buyTokenAmt = _vsgAmount;
 
         // Adjust purchase amount if exceeding max tokens and automove tier is enabled
         if (currentTier.maxTokens < buyTokenAmt + soldTokens && isAutomoveTier) {
@@ -117,11 +122,14 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
             isReachedMaxAmount = true;
         }
 
+        IERC20(VSG).safeTransferFrom(msg.sender, address(this), _vsgAmount);
+
         // Track user VSG purchases
         if (userPaidUSD[activeTier][msg.sender] == 0)
             buyersInTiers[activeTier].push(msg.sender);
 
         userPaidUSD[activeTier][msg.sender] += usdtAmount;
+        userPaidVSG[activeTier][msg.sender] += _vsgAmount;
 
         // Update sold tokens for the current tier
         currentTier.soldTokens += buyTokenAmt;
@@ -167,6 +175,16 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
     function getUserPaidUSDT(uint256 _tierNum, address _account) public view returns (uint256) {
         require(_tierNum < MAX_TIER, "getUserPaidUSDT: Invalid Tier");
         return userPaidUSD[_tierNum][_account];
+    }
+
+    /**
+    * @dev Get paid vsg of a user on specified tier.
+    * @param _account User address.
+    * @param _tierNum Number of tier.
+    */
+    function getUserPaidVSG(uint256 _tierNum, address _account) public view returns (uint256) {
+        require(_tierNum < MAX_TIER, "getUserPaidVSG: Invalid Tier");
+        return userPaidVSG[_tierNum][_account];
     }
 
     /**
