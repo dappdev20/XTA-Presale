@@ -510,7 +510,7 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    <div className="my-1 mt-2">Presale Ends {formatTimestampToDateString(process.env.REACT_APP_XTA_PRESALE_END_DATE)}</div>
+                                    <div className="my-1 mt-2">Current Tier Ends on {formatTimestampToDateString(process.env.REACT_APP_XTA_PRESALE_END_DATE)}</div>
                                     {/* <div className="my-1 mt-2">You paid: {parseFloat(userPaidUSDT ? formatUnits(userPaidUSDT?.toString(), 6) : '0')?.toFixed(2)} USD</div> */}
                                     <div className="my-1 mt-2">You paid: {parseFloat(userPaidVSG ? formatUnits(userPaidVSG?.toString(), 18) : '0')?.toFixed(2)} VSG</div>
                                 </div>
@@ -521,7 +521,7 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    {/* <div className="my-1">XTA DEX Listing {formatTimestampToDateString(process.env.REACT_APP_SUPCOIN_DEX_LISTING_DATE)}</div> */}
+                                    {/* <div className="my-1">XTA DEX Listing {formatTimestampToDateString(process.env.REACT_APP_XTA_DEX_LISTING_DATE)}</div> */}
                                     {/* <div className="my-1 mt-2">Max per wallet: {parseFloat(maxPerWalletOfPhase)} USD</div> */}
                                 </div>
 
