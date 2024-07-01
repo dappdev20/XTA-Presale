@@ -246,7 +246,6 @@ function Home() {
                     const txData = await waitForTransaction({
                         hash: aproveHash,
                     });
-                    console.log('Tx Data =', txData);
                 }
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
