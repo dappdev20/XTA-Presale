@@ -57,7 +57,7 @@ function Home() {
 
     const [maxAmountOfPhase, setMaxAmountOfPhase] = useState(0);
     const [soldAmountOfPhase, setSoldAmountOfPhase] = useState(0);
-    const [startTime, setStartTime] = useState(process.env.REACT_APP_XTA_PRESALE_START_DATE);
+    const [startTime, setStartTime] = useState(0);
     const [endTime, setEndTime] = useState(process.env.REACT_APP_XTA_PRESALE_END_DATE);
     const [minPerWalletOfPhase, setMinPerWalletOfPhase] = useState(0);
     const [maxPerWalletOfPhase, setMaxPerWalletOfPhase] = useState(0);
@@ -334,6 +334,8 @@ function Home() {
             // args: [currentPhaseIndex, process.env.REACT_APP_XTA_PRESALE_START_DATE, process.env.REACT_APP_XTA_PRESALE_END_DATE],
             args: [inputTierNum - 1, startDate, endDate],
         });
+
+        setTargetDate(new Date(endDate * 1000));
     }
 
     const onChangeInputWithdrawAmount = (value) => {
