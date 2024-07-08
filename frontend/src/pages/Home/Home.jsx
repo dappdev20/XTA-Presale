@@ -174,6 +174,7 @@ function Home() {
         setStartTime(activePhaseStatus[2]);
         setEndTime(activePhaseStatus[3]);
         setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
+        setTargetDate(new Date(Number(endTime) * 1000));
     }, [activePhaseStatus]);
 
     const onClickBuy = async () => {
@@ -214,7 +215,7 @@ function Home() {
 
             if (buyMode === buyModes[1]) {
                 if (chain.id !== chainId) {
-                    toast.warning("This platform works on BSC Testnet network for VSG payment. Please change the network of your wallet into BSC Testnte and try again. ");
+                    toast.warning("This platform works on BSC Testnet network for VSG payment. Please change the network of your wallet into BSC Testnet and try again. ");
                     return;
                 }
 
@@ -325,6 +326,10 @@ function Home() {
     }
 
     const onClickSetDate = async () => {
+        if (chain.id !== chainId) {
+            toast.warning("This platform works on BSC Testnet network. Please change the network of your wallet into BSC Testnet and try again.");
+            return;
+        }
         const startDate = new Date(inputStartDate).getTime() / 1000;
         const endDate = new Date(inputEndDate).getTime() / 1000;
         const presaleHash = await walletClient.writeContract({
