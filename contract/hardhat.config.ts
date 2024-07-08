@@ -6,7 +6,7 @@ import dotenv from "dotenv"
 
 dotenv.config();
 
-const testnetURL= 'https://sepolia.infura.io/v3/f6d6d2f729884a51a5c6117f38d7f413' as string;
+const testnetURL= 'https://ethereum-sepolia-rpc.publicnode.com' as string;
 const mainnetURL= 'https://rpc.public.curie.radiumblock.co/ws/ethereum' as string;
 const config: HardhatUserConfig = {
   defaultNetwork: 'sepolia_testnet',
@@ -124,8 +124,8 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      sepolia: "f6d6d2f729884a51a5c6117f38d7f413",
-      mainnet: "f6d6d2f729884a51a5c6117f38d7f413",
+      sepolia: "JDESU7DP8JV7MI4JK3HEY7PYPF64FXA897",
+      mainnet: "JDESU7DP8JV7MI4JK3HEY7PYPF64FXA897",
       bscTestnet: process.env.BSCSCAN_API_KEY || "",
     }
   },

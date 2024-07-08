@@ -19,8 +19,7 @@ async function main() {
       );
 
     const _router = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-    // const _vsg = "0x2A5fA016FFb20c70E2EF36058c08547F344677Aa"; //Testnet
-    const _vsg = "0xA5De24a1cf39c3b28978d1F9794941f0d381352b"; //Ethereum mainnet
+    const _vsg = "0xC6242a8756AD0Ab958765607074Af856f6237Ab3";
     const _usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
     const XTAPresale = await ethers.getContractFactory("XTAPresale");
     console.log('Start Deploying....');

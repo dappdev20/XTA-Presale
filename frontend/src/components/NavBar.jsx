@@ -182,7 +182,7 @@ function NavBar({ isScrolled }) {
                                                 fontWeight: 600,
                                                 textAlign: "center"
                                             }}
-                                        >Please change the network of your wallet into BSC Testnet. This platform works on BSC Test network.</div>
+                                        >Please change the network of your wallet into Sepolia Testnet. This platform works on BSC Test network.</div>
                                     }
                                     {
                                         (chain && chain.id === 97) &&

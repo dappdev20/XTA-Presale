@@ -14,7 +14,7 @@ import {
     useSwitchNetwork
 } from 'wagmi';
 import { formatUnits, parseUnits, parseEther, formatEther } from "viem";
-import { mainnet, goerli, bsc, bscTestnet } from 'wagmi/chains';
+import { mainnet, sepolia } from 'wagmi/chains';
 import { readContract, waitForTransaction } from '@wagmi/core'
 import { Backdrop, CircularProgress } from "@mui/material";
 import Web3 from "web3";
@@ -51,7 +51,6 @@ function Home() {
     const { address, isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
     const { chain } = useNetwork();
-    
     const ethPrice = useSelector(state => state.price.ethPrice || 0);
     const usdtPrice = useSelector(state => state.price.usdtPrice || 0);
 
@@ -66,17 +65,30 @@ function Home() {
     const [countdown, setCountDown] = useState(0);
     const [inputAmount, setInputAmount] = useState(0);
     const [inputTierNum, setInputTierNum] = useState(1);
-    const [inputStartDate, setInputStartDate] = useState("2024-06-29");
-    const [inputEndDate, setInputEndDate] = useState("2024-07-04");
+    const date = new Date();
+    const formatDate = (date) => {
+        var month = '' + (date.getMonth() + 1);
+        var day = '' + date.getDate();
+        var year = date.getFullYear();
+    
+        if (month.length < 2) 
+            month = '0' + month;
+        if (day.length < 2) 
+            day = '0' + day;
+    
+        return [year, month, day].join('-');
+    }
+    const [inputStartDate, setInputStartDate] = useState(formatDate(date));
+    const [inputEndDate, setInputEndDate] = useState(formatDate(date));
     const [outputAmount, setOutputAmount] = useState(0);
     const [inputWithdrawAmount, setInputWithdrawAmount] = useState(0);
     const [debouncedInputAmount] = useDebounce(inputAmount, 100);
     const [working, setWorking] = useState(false);
-    const [targetDate, setTargetDate] = useState(0);
+    const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_XTA_PRESALE_END_DATE * 1000));
     const [approvingTxHash, setApprovingTxHash] = useState("");
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
-    const chainId = 97;
+    const chainId = 11155111;
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -162,8 +174,6 @@ function Home() {
         address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
         abi: PresalePlatformABI,
         functionName: 'owner',
-        enabled: true,
-        watch: true,
         chainId: chainId
     });
 
@@ -174,7 +184,12 @@ function Home() {
         setStartTime(activePhaseStatus[2]);
         setEndTime(activePhaseStatus[3]);
         setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
-        setTargetDate(new Date(Number(activePhaseStatus[3]) * 1000));
+        if (Number(activePhaseStatus[3]) != 0) {
+            if (new Date().getTime() <= new Date(parseInt(activePhaseStatus[2]) * 1000).getTime())
+                setTargetDate(new Date(Number(activePhaseStatus[2]) * 1000));
+            else
+                setTargetDate(new Date(Number(activePhaseStatus[3]) * 1000));
+        }
     }, [activePhaseStatus]);
 
     const onClickBuy = async () => {
@@ -185,6 +200,11 @@ function Home() {
         if (outputAmount <= 0) {
             toast.warning("Invalid amount!");
             return;
+        }
+
+        if (new Date().getTime() <= new Date(parseInt(startTime) * 1000).getTime() || new Date().getTime() >= new Date(parseInt(endTime) * 1000).getTime()) {
+            toast.warning("No Presale Period!");
+            return;       
         }
         
         try {
@@ -215,7 +235,7 @@ function Home() {
 
             if (buyMode === buyModes[1]) {
                 if (chain.id !== chainId) {
-                    toast.warning("This platform works on BSC Testnet network for VSG payment. Please change the network of your wallet into BSC Testnet and try again. ");
+                    toast.warning("This platform works on Sepolia Testnet network for VSG payment. Please change the network of your wallet into Sepolia Testnet and try again. ");
                     return;
                 }
 
@@ -228,13 +248,14 @@ function Home() {
                 //     return;
                 // }
                 setWorking(true);
-
+                console.log('[DM] start Buy1...', address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, process.env.REACT_APP_VSG_ADDRESS);
                 const allowance = await readContract({
                     address: process.env.REACT_APP_VSG_ADDRESS,
                     abi: TokenABI,
                     functionName: 'allowance',
                     args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                 })
+                console.log('[DM] start Buy2...');
                 if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
                     const aproveHash = await walletClient.writeContract({
                         address: process.env.REACT_APP_VSG_ADDRESS,
@@ -248,6 +269,7 @@ function Home() {
                         hash: aproveHash,
                     });
                 }
+                console.log('[DM] start Buy3...');
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
                     abi: PresalePlatformABI,
@@ -255,7 +277,9 @@ function Home() {
                     args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
                 });
+                console.log('[DM] start Buy4...');
                 setPresaleTxHash(presaleHash);
+                console.log('[DM] start Buy5...');
             }
         } catch (err) {
             console.error(err);
@@ -327,7 +351,7 @@ function Home() {
 
     const onClickSetDate = async () => {
         if (chain.id !== chainId) {
-            toast.warning("This platform works on BSC Testnet network. Please change the network of your wallet into BSC Testnet and try again.");
+            toast.warning("This platform works on Sepolia Testnet network. Please change the network of your wallet into Sepolia Testnet and try again.");
             return;
         }
         const startDate = new Date(inputStartDate).getTime() / 1000;
@@ -516,7 +540,7 @@ function Home() {
                                     justifyContent: "space-between",
                                     fontSize: "14px"
                                 }} >
-                                    <div className="my-1 mt-2">Current Tier Ends on {formatTimestampToDateString(process.env.REACT_APP_XTA_PRESALE_END_DATE)}</div>
+                                    <div className="my-1 mt-2">Current Tier Ends on {formatTimestampToDateString(parseInt(endTime))}</div>
                                     {/* <div className="my-1 mt-2">You paid: {parseFloat(userPaidUSDT ? formatUnits(userPaidUSDT?.toString(), 6) : '0')?.toFixed(2)} USD</div> */}
                                     <div className="my-1 mt-2">You paid: {parseFloat(userPaidVSG ? formatUnits(userPaidVSG?.toString(), 18) : '0')?.toFixed(2)} VSG</div>
                                 </div>
