@@ -72,7 +72,7 @@ function Home() {
     const [inputWithdrawAmount, setInputWithdrawAmount] = useState(0);
     const [debouncedInputAmount] = useDebounce(inputAmount, 100);
     const [working, setWorking] = useState(false);
-    const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_XTA_PRESALE_END_DATE * 1000));
+    const [targetDate, setTargetDate] = useState(0);
     const [approvingTxHash, setApprovingTxHash] = useState("");
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
@@ -174,7 +174,7 @@ function Home() {
         setStartTime(activePhaseStatus[2]);
         setEndTime(activePhaseStatus[3]);
         setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
-        setTargetDate(new Date(Number(endTime) * 1000));
+        setTargetDate(new Date(Number(activePhaseStatus[3]) * 1000));
     }, [activePhaseStatus]);
 
     const onClickBuy = async () => {
