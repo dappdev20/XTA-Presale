@@ -248,14 +248,12 @@ function Home() {
                 //     return;
                 // }
                 setWorking(true);
-                console.log('[DM] start Buy1...', address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, process.env.REACT_APP_VSG_ADDRESS);
                 const allowance = await readContract({
                     address: process.env.REACT_APP_VSG_ADDRESS,
                     abi: TokenABI,
                     functionName: 'allowance',
                     args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                 })
-                console.log('[DM] start Buy2...');
                 if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
                     const aproveHash = await walletClient.writeContract({
                         address: process.env.REACT_APP_VSG_ADDRESS,
@@ -269,7 +267,6 @@ function Home() {
                         hash: aproveHash,
                     });
                 }
-                console.log('[DM] start Buy3...');
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
                     abi: PresalePlatformABI,
@@ -277,9 +274,7 @@ function Home() {
                     args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
                 });
-                console.log('[DM] start Buy4...');
                 setPresaleTxHash(presaleHash);
-                console.log('[DM] start Buy5...');
             }
         } catch (err) {
             console.error(err);
