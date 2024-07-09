@@ -186,10 +186,13 @@ function Home() {
         setSoldAmountOfPhase(formatEther(activePhaseStatus[4]?.toString()));
         if (Number(activePhaseStatus[3]) != 0) {
             if (new Date().getTime() <= new Date(parseInt(activePhaseStatus[2]) * 1000).getTime())
-                setTargetDate(new Date(Number(activePhaseStatus[2]) * 1000));
+                setTargetDate(new Date(parseInt(activePhaseStatus[2]) * 1000));
             else
-                setTargetDate(new Date(Number(activePhaseStatus[3]) * 1000));
+                setTargetDate(new Date(parseInt(activePhaseStatus[3]) * 1000));
         }
+
+        setInputStartDate(formatDate(new Date(parseInt(activePhaseStatus[2]) * 1000)));
+        setInputEndDate(formatDate(new Date(parseInt(activePhaseStatus[3]) * 1000)));
     }, [activePhaseStatus]);
 
     const onClickBuy = async () => {
