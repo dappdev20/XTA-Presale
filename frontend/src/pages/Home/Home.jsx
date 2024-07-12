@@ -606,7 +606,7 @@ function Home() {
                         </div>
                         {
                             ownerAddress == address ? 
-                        <div className="buy-section col-md-4 mx-auto">
+                        <div className="buy-section text-center text-light col-md-4 mx-auto">
                             <div className="form-group" style={{
                                 display: "flex",
                                 flexDirection: "row",
