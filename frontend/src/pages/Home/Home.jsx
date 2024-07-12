@@ -252,6 +252,17 @@ function Home() {
                 //     return;
                 // }
                 setWorking(true);
+                const isWhiteListed = await readContract({
+                    address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+                    abi: PresalePlatformABI,
+                    functionName: 'isWhiteListed',
+                    args: [address],
+                })
+                if (!isWhiteListed) {
+                    setWorking(false);
+                    toast.warning("You are not in whitelist.");
+                    return;
+                }
                 const allowance = await readContract({
                     address: process.env.REACT_APP_VSG_ADDRESS,
                     abi: TokenABI,

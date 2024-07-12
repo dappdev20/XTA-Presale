@@ -96,6 +96,13 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
         return addresses;
     }
 
+    function isWhiteListed(address walletAddress) public view returns(bool) {
+        if (EnumerableSet.contains(whiteListAddress, walletAddress))
+            return true;
+        else
+            return false;
+    }
+
     // Function to add a new presale tier
     function addTier(uint256 _maxTokens, uint256 _price) private {
         require(tiers.length < MAX_TIER, "addTier: Tier count overflow");
