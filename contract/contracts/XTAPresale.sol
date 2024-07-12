@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 
 interface IRouter {
@@ -37,6 +38,7 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
     uint256 private constant VSG_DECIMAL = 1e18;
     uint256 private constant USDT_DECIMAL = 1e6;
     uint256 private constant MAX_TIER = 3;
+    EnumerableSet.AddressSet private whiteListAddress;
 
     // Variables
     uint256 public activeTier;
@@ -71,6 +73,29 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
         addTier(500_000_000, 90);   // 500 million tokens, $0.00009, 15 days
     }
 
+    function addToWhiteList(address walletAddress) public onlyOwner {
+        EnumerableSet.add(whiteListAddress, walletAddress);
+    }
+
+    function addAllToWhiteList(address[] memory walletAddresses) external onlyOwner {
+        for (uint256 i = 0; i < walletAddresses.length; i++) {
+            addToWhiteList(walletAddresses[i]);
+        }
+    }
+
+    function removeFromWhiteList(address walletAddress) external onlyOwner {
+        EnumerableSet.remove(whiteListAddress, walletAddress);
+    }
+
+    function getWhiteList() public view returns(address[] memory) {
+        uint256 length = EnumerableSet.length(whiteListAddress);
+        address[] memory addresses = new address[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            addresses[i] = EnumerableSet.at(whiteListAddress, i);
+        }
+        return addresses;
+    }
+
     // Function to add a new presale tier
     function addTier(uint256 _maxTokens, uint256 _price) private {
         require(tiers.length < MAX_TIER, "addTier: Tier count overflow");
@@ -92,6 +117,7 @@ contract XTAPresale is Ownable(msg.sender), ReentrancyGuard {
     * @notice Buy tokens with VSG.
     */
     function buyTokensWithVSG(uint256 _vsgAmount) external nonReentrant {
+        require(EnumerableSet.contains(whiteListAddress, msg.sender), "Not a whitelisted factory");
         require(activeTier < MAX_TIER, "buyTokensWithVSG: Invalid Tier");
 
         // Retrieve tier details

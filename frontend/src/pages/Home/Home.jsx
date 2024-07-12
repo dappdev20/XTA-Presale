@@ -65,6 +65,7 @@ function Home() {
     const [countdown, setCountDown] = useState(0);
     const [inputAmount, setInputAmount] = useState(0);
     const [inputTierNum, setInputTierNum] = useState(1);
+    const [inputWhiteList, setInputWhiteList] = useState("");
     const date = new Date();
     const formatDate = (date) => {
         var month = '' + (date.getMonth() + 1);
@@ -277,7 +278,8 @@ function Home() {
                     args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
                 });
-                setPresaleTxHash(presaleHash);
+                setWorking(false);
+                // setPresaleTxHash(presaleHash);
             }
         } catch (err) {
             console.error(err);
@@ -376,6 +378,33 @@ function Home() {
         }
         if (targetChainId !== chain?.id) {
             switchNetwork(targetChainId);
+        }
+    }
+
+    const onChangeInputWhiteList = (value) => {
+        setInputWhiteList(value);
+    }
+
+    const onClickSetWhitelist = async () => {
+        if (isConnected !== true) {
+            toast.warning("Connect your wallet!");
+            return;
+        }
+        if (chain.id !== chainId) {
+            toast.warning("This platform works on Sepolia Testnet network. Please change the network of your wallet into Sepolia Testnet and try again.");
+            return;
+        }
+        
+        const waddress = inputWhiteList.split(/\r?\n/);
+        if (waddress.length > 0) {
+            setWorking(true);
+            const whitelistHash = await walletClient.writeContract({
+                address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+                abi: PresalePlatformABI,
+                functionName: 'addAllToWhiteList',
+                args: [waddress],
+            });
+            setWorking(false);
         }
     }
 
@@ -604,6 +633,35 @@ function Home() {
                                 }
                             </div>
                         </div>
+                        {
+                            ownerAddress == address ? 
+                        <div className="col-md-4 mx-auto">
+                                <div>
+                                    <div className="form-group">
+                                    <textarea
+                                        type="text"
+                                        style={{ height: "167px", width: "435px" }}
+                                        name="whitelist"
+                                        // value={inputWhiteList}
+                                        onChange={(e) => onChangeInputWhiteList(e.target.value)}
+                                        className="whitelist"
+                                        placeholder="Insert address: separate with breaks line.
+                                            Ex:
+                                            0x34E7f6A4d0BB1fa7aFe548582c47Df337FC337E6
+                                            0xd8Ebc66f0E3D638156D6F5eFAe9f43B1eBc113B1
+                                            0x968136BB860D9534aF1563a7c7BdDa02B1A979C2"
+                                    >
+                                        {inputWhiteList}
+                                    </textarea>
+                                    </div>
+                                    <button className="btn btn-primary buy-btn btn-block"
+                                        onClick={() => onClickSetWhitelist()}
+                                    >Set Whitelist
+                                    </button>
+                                </div>
+                        </div>
+                        : <div> </div>
+                        }
                     </div>
                 </Hero>
             </div>
