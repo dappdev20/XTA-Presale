@@ -606,7 +606,7 @@ function Home() {
                         </div>
                         {
                             ownerAddress == address ? 
-                        <div className="buy-section text-center text-light col-md-4 mx-auto">
+                        <div className="buy-section text-center text-light col-md-6 mx-auto">
                             <div className="form-group" style={{
                                 display: "flex",
                                 flexDirection: "row",
@@ -615,15 +615,15 @@ function Home() {
                             }}>
                                 <div className="input">
                                     <div className="my-1 mt-2">Current Tier</div>
-                                    <input type="number" id='tierNum' value={inputTierNum} onChange={(e) => onChangeInputTierNum(e.target.value)} />
+                                    <input type="number" id='tierNum' value={inputTierNum} className="text" onChange={(e) => onChangeInputTierNum(e.target.value)} />
                                 </div>
                                 <div className="input">
                                     <div className="my-1 mt-2">Start Date</div>
-                                    <input type="date" id='startDate' name="startDate" value={inputStartDate} min="2024-01-01" onChange={(e) => onChangeInputStartDate(e.target.value)} />
+                                    <input type="date" id='startDate' name="startDate" value={inputStartDate} className="text" min="2024-01-01" onChange={(e) => onChangeInputStartDate(e.target.value)} />
                                 </div>
                                 <div className="input">
                                     <div className="my-1 mt-2">End Date</div>
-                                    <input type="date" id='endDate' name="endDate" value={inputEndDate} min="2024-01-01" onChange={(e) => onChangeInputEndDate(e.target.value)}  />
+                                    <input type="date" id='endDate' name="endDate" value={inputEndDate} className="text" min="2024-01-01" onChange={(e) => onChangeInputEndDate(e.target.value)}  />
                                 </div>
                             </div>
                             <button className="btn btn-primary buy-btn btn-block"
@@ -634,7 +634,7 @@ function Home() {
                             <div className="form-group">
                                 <div className="input">
                                     <div className="my-1 mt-2">Amount</div>
-                                    <input type="number" id='withdrawAmount' value={inputWithdrawAmount} onChange={(e) => onChangeInputWithdrawAmount(e.target.value)} />
+                                    <input type="number" id='withdrawAmount' value={inputWithdrawAmount} className="text" onChange={(e) => onChangeInputWithdrawAmount(e.target.value)} />
                                 </div>
                             </div>
                             <button className="btn btn-primary buy-btn btn-block"
