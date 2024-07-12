@@ -602,74 +602,69 @@ function Home() {
                                     {/* <div className="my-1">Listing Price 1$XTA = {process.env.REACT_APP_SUPCOIN_LISTING_PRICE}USDT</div> */}
                                     {/* <div className="my-1">Min per wallet: {parseFloat(minPerWalletOfPhase)} USD</div> */}
                                 </div>
-                                {
-                                ownerAddress == address ? 
-                                    <div>
-                                        <div className="form-group" style={{
-                                            display: "flex",
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            fontSize: "14px"
-                                        }}>
-                                            <div className="input">
-                                                <div className="my-1 mt-2">Current Tier</div>
-                                                <input type="number" id='tierNum' value={inputTierNum} onChange={(e) => onChangeInputTierNum(e.target.value)} />
-                                            </div>
-                                            <div className="input">
-                                                <div className="my-1 mt-2">Start Date</div>
-                                                <input type="date" id='startDate' name="startDate" value={inputStartDate} min="2024-01-01" onChange={(e) => onChangeInputStartDate(e.target.value)} />
-                                            </div>
-                                            <div className="input">
-                                                <div className="my-1 mt-2">End Date</div>
-                                                <input type="date" id='endDate' name="endDate" value={inputEndDate} min="2024-01-01" onChange={(e) => onChangeInputEndDate(e.target.value)}  />
-                                            </div>
-                                        </div>
-                                        <button className="btn btn-primary buy-btn btn-block"
-                                            onClick={() => onClickSetDate()}
-                                        >Set Start and End Date
-                                        </button>
-                                        <br></br>
-                                        <div className="form-group">
-                                            <div className="input">
-                                                <div className="my-1 mt-2">Amount</div>
-                                                <input type="number" id='withdrawAmount' value={inputWithdrawAmount} onChange={(e) => onChangeInputWithdrawAmount(e.target.value)} />
-                                            </div>
-                                        </div>
-                                        <button className="btn btn-primary buy-btn btn-block"
-                                            onClick={() => onClickWithdraw()}
-                                        >Withdraw
-                                        </button>
-                                    </div>
-                                : <div> </div>
-                                }
                             </div>
                         </div>
                         {
                             ownerAddress == address ? 
-                        <div className="col-md-4 mx-auto">
-                                <div>
-                                    <div className="form-group">
-                                    <textarea
-                                        type="text"
-                                        style={{ height: "167px", width: "435px" }}
-                                        name="whitelist"
-                                        // value={inputWhiteList}
-                                        onChange={(e) => onChangeInputWhiteList(e.target.value)}
-                                        className="whitelist"
-                                        placeholder="Insert address: separate with breaks line.
-                                            Ex:
-                                            0x34E7f6A4d0BB1fa7aFe548582c47Df337FC337E6
-                                            0xd8Ebc66f0E3D638156D6F5eFAe9f43B1eBc113B1
-                                            0x968136BB860D9534aF1563a7c7BdDa02B1A979C2"
-                                    >
-                                        {inputWhiteList}
-                                    </textarea>
-                                    </div>
-                                    <button className="btn btn-primary buy-btn btn-block"
-                                        onClick={() => onClickSetWhitelist()}
-                                    >Set Whitelist
-                                    </button>
+                        <div className="buy-section col-md-4 mx-auto">
+                            <div className="form-group" style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                fontSize: "14px"
+                            }}>
+                                <div className="input">
+                                    <div className="my-1 mt-2">Current Tier</div>
+                                    <input type="number" id='tierNum' value={inputTierNum} onChange={(e) => onChangeInputTierNum(e.target.value)} />
                                 </div>
+                                <div className="input">
+                                    <div className="my-1 mt-2">Start Date</div>
+                                    <input type="date" id='startDate' name="startDate" value={inputStartDate} min="2024-01-01" onChange={(e) => onChangeInputStartDate(e.target.value)} />
+                                </div>
+                                <div className="input">
+                                    <div className="my-1 mt-2">End Date</div>
+                                    <input type="date" id='endDate' name="endDate" value={inputEndDate} min="2024-01-01" onChange={(e) => onChangeInputEndDate(e.target.value)}  />
+                                </div>
+                            </div>
+                            <button className="btn btn-primary buy-btn btn-block"
+                                onClick={() => onClickSetDate()}
+                            >Set Start and End Date
+                            </button>
+                            <br></br>
+                            <div className="form-group">
+                                <div className="input">
+                                    <div className="my-1 mt-2">Amount</div>
+                                    <input type="number" id='withdrawAmount' value={inputWithdrawAmount} onChange={(e) => onChangeInputWithdrawAmount(e.target.value)} />
+                                </div>
+                            </div>
+                            <button className="btn btn-primary buy-btn btn-block"
+                                onClick={() => onClickWithdraw()}
+                            >Withdraw
+                            </button>
+                            <br />
+                            <div>
+                                <div className="form-group">
+                                <textarea
+                                    type="text"
+                                    style={{ height: "300px", width: "435px" }}
+                                    name="whitelist"
+                                    // value={inputWhiteList}
+                                    onChange={(e) => onChangeInputWhiteList(e.target.value)}
+                                    className="whitelist"
+                                    placeholder="Insert address: separate with breaks line.
+                                        Ex:
+                                        0x34E7f6A4d0BB1fa7aFe548582c47Df337FC337E6
+                                        0xd8Ebc66f0E3D638156D6F5eFAe9f43B1eBc113B1
+                                        0x968136BB860D9534aF1563a7c7BdDa02B1A979C2"
+                                >
+                                    {inputWhiteList}
+                                </textarea>
+                                </div>
+                                <button className="btn btn-primary buy-btn btn-block"
+                                    onClick={() => onClickSetWhitelist()}
+                                >Set Whitelist
+                                </button>
+                            </div>
                         </div>
                         : <div> </div>
                         }
