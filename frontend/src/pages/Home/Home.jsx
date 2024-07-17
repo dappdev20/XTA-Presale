@@ -277,10 +277,11 @@ function Home() {
                         args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
 
                     });
-                    setApprovingTxHash(aproveHash);
-                    const txData = await waitForTransaction({
+                    // setApprovingTxHash(aproveHash);
+                    const waitHash = await waitForTransaction({
                         hash: aproveHash,
                     });
+                    
                 }
                 const presaleHash = await walletClient.writeContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
@@ -289,8 +290,12 @@ function Home() {
                     args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
                 });
+                const waitHash = await waitForTransaction({
+                    hash: presaleHash,
+                });
                 setWorking(false);
                 // setPresaleTxHash(presaleHash);
+                
             }
         } catch (err) {
             console.error(err);
@@ -310,20 +315,20 @@ function Home() {
 
     useEffect(() => {
         (async () => {
-            if (approvingTxHash) {
-                setTimeout(async () => {
-                    try {
-                        const receipt = await confirmTransactionReceipt(approvingTxHash);
-                        console.log(receipt);
-                        setApprovingTxHash(null);
-                        toast.success("You've approved your USDT to presale contract!");
-                    } catch (err) {
-                        setWorking(false);
-                        setApprovingTxHash(null);
-                        console.log(err);
-                    }
-                }, 3000);
-            }
+            // if (approvingTxHash) {
+            //     setTimeout(async () => {
+            //         try {
+            //             const receipt = await confirmTransactionReceipt(approvingTxHash);
+            //             console.log(receipt);
+            //             setApprovingTxHash(null);
+            //             toast.success("You've approved your USDT to presale contract!");
+            //         } catch (err) {
+            //             setWorking(false);
+            //             setApprovingTxHash(null);
+            //             console.log(err);
+            //         }
+            //     }, 3000);
+            // }
             if (presaleTxHash) {
                 setTimeout(async () => {
                     try {
@@ -441,7 +446,7 @@ function Home() {
 
                 <Hero centerContent={true} expand={true} className={"container-fluid justify-center"} >
                     <div className="row w-100 mx-auto justify-content-between align-items-center">
-                        <div className="col-md-4 mx-auto">
+                        <div className="col-12 col-sm-10 col-md-6 col-lg-5 col-xl-4 mx-auto">
                             <div className="buy-section text-center text-light ml-md-auto">
                                 <h6 className="bold">SECURE YOUR PURCHASE BEFORE PRICE INCREASE!</h6>
                                 <h6 className="text-primary mt-3 bold">SALE {
@@ -516,10 +521,6 @@ function Home() {
                                 </div>
 
                                 <div className="buy-form text-left"
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between"
-                                    }}
                                 >
                                     <div className="form-group">
                                         <span>Amount in {

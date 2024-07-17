@@ -64,7 +64,7 @@ function NavBar({ isScrolled }) {
             <div className="container-fluid">
                 <div className="navbar-container flex-wrap">
                     <div className='logo' onClick={closeToggler}>
-                        <Link to="/" className='nav-link px-0 mr-5'><img width={72} src={logo} alt="" /></Link>
+                        <Link to="/" className='nav-link px-0'><img width={72} src={logo} alt="" /></Link>
                     </div>
 
                     {/* Action Buttons */}

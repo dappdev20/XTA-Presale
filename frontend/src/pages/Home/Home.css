@@ -1,4 +1,12 @@
 /* Home */
+html {
+    background: url("../../images/home/video.png");
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: cover;
+    min-height: 100vh;
+}
+
 #home {
     position: relative;
 }
@@ -10,15 +18,6 @@
 .hero-bg {
     width: 100%;
     height: 100%;
-}
-
-#home .hero-bg1 {
-    background:url("../../images/home/video.png") center center/cover no-repeat;
-    background-position-x: left;
-}
-
-.hero-bg2 {
-    background-color: #1b1b1b;
 }
 
 #home .hero-context {
@@ -99,7 +98,7 @@
 
 .buy-form {
     margin-top: 1rem;
-    display: flex;
+    /* display: flex; */
     gap: 10px;
 }
 
@@ -190,7 +189,10 @@ background-color: transparent;
 /* Watch Video */
 #watch-video {
     min-height: 685px;
-    background: url("../../images/home/video.png") center center/cover no-repeat;
+    background: url("../../images/home/video.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
