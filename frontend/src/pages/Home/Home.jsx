@@ -266,6 +266,7 @@ function Home() {
                         functionName: 'allowance',
                         args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                     })
+                    setWorking(false);
                     if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
                         const aproveHash = await walletClient.writeContract({
                             address: process.env.REACT_APP_VSG_ADDRESS,
@@ -274,7 +275,7 @@ function Home() {
                             args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
     
                         });
-                        setWorking(false);
+                        
                         setApprovingTxHash(aproveHash);
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
