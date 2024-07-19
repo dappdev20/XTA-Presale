@@ -85,6 +85,8 @@ function Home() {
     const [inputWithdrawAmount, setInputWithdrawAmount] = useState(0);
     const [debouncedInputAmount] = useDebounce(inputAmount, 100);
     const [working, setWorking] = useState(false);
+    const [isApproving, setIsApproving] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
     const [targetDate, setTargetDate] = useState(new Date(process.env.REACT_APP_XTA_PRESALE_END_DATE * 1000));
     const [approvingTxHash, setApprovingTxHash] = useState("");
     const [presaleTxHash, setPresaleTxHash] = useState("");
@@ -211,6 +213,8 @@ function Home() {
             return;       
         }
         
+        let approveData = false;
+        let confirmData = false;
         try {
             if (buyMode === buyModes[0]) {
                 if (chain.id !== chainId) {
@@ -243,15 +247,8 @@ function Home() {
                     return;
                 }
 
-                // if (parseFloat(debouncedInputAmount) > parseFloat(maxPerWalletOfPhase)) {
-                //     toast.warn(`In this phrase of presale, maximum is ${parseInt(maxPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
-                //     return;
-                // }
-                // if (parseFloat(debouncedInputAmount) < parseFloat(minPerWalletOfPhase)) {
-                //     toast.warn(`In this phrase of presale, minimum is ${parseInt(minPerWalletOfPhase)} USDT. Please input valid amount and try again.`)
-                //     return;
-                // }
                 setWorking(true);
+                
                 const isWhiteListed = await readContract({
                     address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
                     abi: PresalePlatformABI,
@@ -263,45 +260,93 @@ function Home() {
                     toast.warning("You are not in whitelist.");
                     return;
                 }
-                const allowance = await readContract({
-                    address: process.env.REACT_APP_VSG_ADDRESS,
-                    abi: TokenABI,
-                    functionName: 'allowance',
-                    args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
-                })
-                if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
-                    const aproveHash = await walletClient.writeContract({
+
+                if (!isApproving && !isConfirming) {
+                    approveData = true;
+                    setIsApproving(approveData);
+                    const allowance = await readContract({
                         address: process.env.REACT_APP_VSG_ADDRESS,
                         abi: TokenABI,
-                        functionName: "approve",
-                        args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
+                        functionName: 'allowance',
+                        args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
+                    })
+                    if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
+                        const aproveHash = await walletClient.writeContract({
+                            address: process.env.REACT_APP_VSG_ADDRESS,
+                            abi: TokenABI,
+                            functionName: "approve",
+                            args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
+    
+                        });
+                        // setApprovingTxHash(aproveHash);
+                        const waitHash = await waitForTransaction({
+                            hash: aproveHash,
+                        });
+                    }
 
-                    });
-                    // setApprovingTxHash(aproveHash);
+                    confirmData = true
+                    setIsConfirming(confirmData);
+                    setWorking(false);
+                } else if (isConfirming) {
+                    const presaleHash = await walletClient.writeContract({
+                        address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+                        abi: PresalePlatformABI,
+                        functionName: 'buyTokensWithVSG',
+                        args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
+    
+                    })
+
                     const waitHash = await waitForTransaction({
-                        hash: aproveHash,
+                        hash: presaleHash,
                     });
-                    
-                }
-                const presaleHash = await walletClient.writeContract({
-                    address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
-                    abi: PresalePlatformABI,
-                    functionName: 'buyTokensWithVSG',
-                    args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
 
-                });
-                const waitHash = await waitForTransaction({
-                    hash: presaleHash,
-                });
-                setWorking(false);
+                    confirmData = false;
+                    approveData = false;
+                    setWorking(false);
+                    setIsConfirming(confirmData);
+                    setIsApproving(approveData);
+                }
                 // setPresaleTxHash(presaleHash);
                 
             }
         } catch (err) {
-            console.error(err);
             setWorking(false);
+            if (approveData) {
+                approveData = false;
+                setIsApproving(approveData);
+            }
+                
+            else if (confirmData) {
+                confirmData = false;
+                approveData = false;
+                setIsConfirming(confirmData);
+                setIsApproving(approveData);
+            }
+            console.error(err);
         }
     }
+
+    const getButtonText = () => {
+        if (isApproving && !isConfirming) return "Approving ...";
+        let buttonTitle = "Buy with ";
+        let buyToken = "ETH";
+        if (isConfirming) {
+            
+            if (buyMode === "byETH") 
+                buyToken = "ETH";
+            else if (buyMode === "byVSG"){
+                buyToken = "VSG";
+            }
+            else if (buyMode === "byCard") {
+                buyToken = "Card"
+            }
+            else if (buyMode === "byBNB") {
+                buyToken = "BNB"
+            }
+        }
+        buttonTitle = buttonTitle + buyToken;
+        return buttonTitle;
+      }
 
     const onClickWithdraw = async () => {
         const presaleHash = await walletClient.writeContract({
@@ -315,6 +360,7 @@ function Home() {
 
     useEffect(() => {
         (async () => {
+            
             // if (approvingTxHash) {
             //     setTimeout(async () => {
             //         try {
@@ -329,25 +375,29 @@ function Home() {
             //         }
             //     }, 3000);
             // }
-            if (presaleTxHash) {
-                setTimeout(async () => {
-                    try {
-                        const receipt = await confirmTransactionReceipt(presaleTxHash);
-                        console.log(receipt);
-                        setInputAmount(0);
-                        setOutputAmount(0);
-                        setWorking(false);
-                        setPresaleTxHash(null);
-                        toast.success("You've successfully bought XTA coins.");
-                    } catch (err) {
-                        setWorking(false);
-                        setPresaleTxHash(null);
-                        console.log(err);
-                    }
-                }, 3000);
-            }
+            // if (presaleTxHash) {
+            //     setTimeout(async () => {
+            //         try {
+            //             const receipt = await confirmTransactionReceipt(presaleTxHash);
+            //             console.log(receipt);
+            //             setInputAmount(0);
+            //             setOutputAmount(0);
+            //             setWorking(false);
+            //             setPresaleTxHash(null);
+            //             toast.success("You've successfully bought XTA coins.");
+            //         } catch (err) {
+            //             setWorking(false);
+            //             setPresaleTxHash(null);
+            //             console.log(err);
+            //         }
+            //     }, 3000);
+            // }
         })()
     }, [approvingTxHash, presaleTxHash])
+
+    useEffect(() => {
+        getButtonText();
+    }, [isApproving, isConfirming]);
 
     const onChangeInputAmount = (value) => {
         setInputAmount(parseFloat(value));
@@ -559,18 +609,7 @@ function Home() {
 
                                 <button className="btn btn-primary buy-btn btn-block"
                                     onClick={() => onClickBuy()}
-                                >Buy with&nbsp;
-                                    {
-                                        buyMode === "byETH" && "ETH"
-                                    }
-                                    {
-                                        buyMode === "byVSG" && "VSG"}
-                                    {
-                                        buyMode === "byCard" && "Card"
-                                    }
-                                    {
-                                        buyMode === "byBNB" && "BNB"
-                                    }
+                                >{getButtonText()}
                                 </button>
 
                                 <div style={{
