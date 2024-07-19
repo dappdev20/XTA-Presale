@@ -15,7 +15,7 @@ import {
 } from 'wagmi';
 import { formatUnits, parseUnits, parseEther, formatEther } from "viem";
 import { mainnet, sepolia } from 'wagmi/chains';
-import { readContract, waitForTransaction } from '@wagmi/core'
+import { readContract, waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
 import { Backdrop, CircularProgress } from "@mui/material";
 import Web3 from "web3";
 
@@ -266,32 +266,33 @@ function Home() {
                         functionName: 'allowance',
                         args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                     })
-                    setWorking(false);
                     if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
-                        const aproveHash = await walletClient.writeContract({
+                        const config = await prepareWriteContract({
                             address: process.env.REACT_APP_VSG_ADDRESS,
+                            chainId: chain.id,
                             abi: TokenABI,
                             functionName: "approve",
-                            args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
-    
-                        });
-                        
-                        setApprovingTxHash(aproveHash);
+                            args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], 
+                            wallet: address,
+                         });
+                        const aproveHash = await writeContract(config);
+                        setApprovingTxHash(aproveHash.hash);
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
                         // });
                     }
 
                 } else if (approveData) {
-                    const presaleHash = await walletClient.writeContract({
+                    const config = await prepareWriteContract({
                         address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
+                        chainId: chain.id,
                         abi: PresalePlatformABI,
                         functionName: 'buyTokensWithVSG',
                         args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
-    
-                    })
+                     });
+                    const presaleHash = await writeContract(config);
 
-                    setPresaleTxHash(presaleHash);
+                    setPresaleTxHash(presaleHash.hash);
 
                     // const waitHash = await waitForTransaction({
                     //     hash: presaleHash,
