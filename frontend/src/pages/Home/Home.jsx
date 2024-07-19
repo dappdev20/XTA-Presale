@@ -331,7 +331,7 @@ function Home() {
         } else if (approvingTxHash) {
             return "Approving...";
         }
-        
+        return "Buy with VSG";
       }
 
     const onClickWithdraw = async () => {
