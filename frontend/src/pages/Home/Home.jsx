@@ -345,8 +345,8 @@ function Home() {
     }
 
     useEffect(() => {
+        getButtonText();
         (async () => {
-            getButtonText();
             if (approvingTxHash) {
                 setTimeout(async () => {
                     try {
