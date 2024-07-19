@@ -314,7 +314,7 @@ function Home() {
     const getButtonText = () => {
         let buttonTitle = "Buy with ";
         let buyToken = "ETH";
-        if (!approvingTxHash && !presaleTxHash) {
+        if ((!approvingTxHash && !presaleTxHash) || approveData) {
             if (buyMode === "byETH") 
                 buyToken = "ETH";
             else if (buyMode === "byVSG"){
