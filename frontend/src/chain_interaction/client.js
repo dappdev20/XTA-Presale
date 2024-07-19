@@ -2,6 +2,7 @@ import { createPublicClient, http } from 'viem'
 import { goerli } from 'viem/chains'
 import Web3 from 'web3';
 import axios from "axios";
+import { waitForTransaction } from '@wagmi/core'
 
 // Connect to the Ethereum node
 const web3 = new Web3(process.env.REACT_APP_WEB3_RPC); // Use your Infura Project ID
@@ -16,7 +17,10 @@ export const confirmTransactionReceipt = async (txHash, maxAttempts = 20, interv
 
   while (attempts < maxAttempts && !receipt) {
     try {
-      receipt = await web3.eth.getTransactionReceipt(txHash);
+      receipt = await waitForTransaction({
+          hash: txHash,
+      });
+      // receipt = await web3.eth.getTransactionReceipt(txHash);
       if (receipt) {
         console.log('Transaction receipt:', receipt);
         return receipt;
