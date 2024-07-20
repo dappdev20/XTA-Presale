@@ -275,7 +275,9 @@ function Home() {
                             args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], 
                             wallet: address,
                          });
+                         setWorking(false);
                         const aproveHash = await writeContract(config);
+                        setWorking(true);
                         setApprovingTxHash(aproveHash.hash);
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
