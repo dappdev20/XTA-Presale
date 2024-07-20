@@ -298,6 +298,7 @@ function Home() {
                             from: address
                         });
                         console.log('[DM] approvehash = ', aproveHash);
+                        toast.success("approvehash!!!");
                         setApprovingTxHash(aproveHash.transactionHash);
                         setWorking(false);
                     }
