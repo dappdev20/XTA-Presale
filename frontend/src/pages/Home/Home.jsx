@@ -42,11 +42,10 @@ import { socket } from "../../App";
 // Import Swiper styles
 import "./Home.css"
 
-
+const web3 = new Web3(window.ethereum)
 const buyModes = ["byETH", "byVSG"];
 const definedPresalePrices = [0.006, 0.0075, 0.009];
 let approveData = false;
-let confirmData = false;
 
 function Home() {
     const { isLoading: isSwitchingLoading, switchNetwork } = useSwitchNetwork()
@@ -92,6 +91,8 @@ function Home() {
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
     const chainId = 11155111;
+
+    const VSGContract = new web3.eth.Contract(TokenABI, process.env.REACT_APP_VSG_ADDRESS);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -267,21 +268,26 @@ function Home() {
                         args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
                     })
                     if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
-                        const config = await prepareWriteContract({
-                            address: process.env.REACT_APP_VSG_ADDRESS,
-                            chainId: chain.id,
-                            abi: TokenABI,
-                            functionName: "approve",
-                            args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], 
-                            wallet: address,
-                         });
-                         setWorking(false);
-                        const aproveHash = await writeContract(config);
-                        setWorking(true);
-                        setApprovingTxHash(aproveHash.hash);
+                        // const config = await prepareWriteContract({
+                        //     address: process.env.REACT_APP_VSG_ADDRESS,
+                        //     chainId: chain.id,
+                        //     abi: TokenABI,
+                        //     functionName: "approve",
+                        //     args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], 
+                        //     wallet: address,
+                        // });
+                        // const aproveHash = await writeContract(config);
+                        // setApprovingTxHash(aproveHash.hash);
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
                         // });
+
+                        const aproveHash = await VSGContract.methods.approve(process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)).send({
+                            from: address
+                        });
+                        console.log('[DM] approvehash = ', aproveHash);
+                        setApprovingTxHash(aproveHash.transactionHash);
+                        setWorking(false);
                     }
 
                 } else if (approveData) {
@@ -317,22 +323,8 @@ function Home() {
     }
 
     const getButtonText = () => {
-        let buttonTitle = "Buy with ";
-        let buyToken = "ETH";
-        if ((!approvingTxHash && !presaleTxHash) || approveData) {
-            if (buyMode === "byETH") 
-                buyToken = "ETH";
-            else if (buyMode === "byVSG"){
-                buyToken = "VSG";
-            }
-            else if (buyMode === "byCard") {
-                buyToken = "Card"
-            }
-            else if (buyMode === "byBNB") {
-                buyToken = "BNB"
-            }
-            buttonTitle = buttonTitle + buyToken;
-            return buttonTitle;
+        if (approveData) {
+            return "Confirming...";
         } else if (approvingTxHash) {
             return "Approving...";
         }
@@ -353,21 +345,22 @@ function Home() {
         getButtonText();
         (async () => {
             if (approvingTxHash) {
-                setTimeout(async () => {
-                    try {
-                        const receipt = await confirmTransactionReceipt(approvingTxHash);
-                        console.log(receipt);
-                        setApprovingTxHash(null);
-                        toast.success("You've approved your VSG to presale contract!");
-                        setWorking(false);
-                        approveData = true;
-                    } catch (err) {
-                        setWorking(false);
-                        setApprovingTxHash(null);
-                        console.log(err);
-                        approveData = false;
-                    }
-                }, 3000);
+                approveData = true;
+                // setTimeout(async () => {
+                //     try {
+                //         const receipt = await confirmTransactionReceipt(approvingTxHash);
+                //         console.log(receipt);
+                //         setApprovingTxHash(null);
+                //         toast.success("You've approved your VSG to presale contract!");
+                //         setWorking(false);
+                //         approveData = true;
+                //     } catch (err) {
+                //         setWorking(false);
+                //         setApprovingTxHash(null);
+                //         console.log(err);
+                //         approveData = false;
+                //     }
+                // }, 3000);
             }
             if (presaleTxHash) {
                 setTimeout(async () => {
