@@ -18,11 +18,6 @@ import { mainnet, sepolia } from 'wagmi/chains';
 import { readContract, waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
 import { Backdrop, CircularProgress } from "@mui/material";
 import Web3 from "web3";
-import { 
-    BrowserProvider, 
-    Contract
-} from "ethers";
-import detectEthereumProvider from '@metamask/detect-provider';
 
 import pix1 from "../../images/home/pix1.png"
 import pix2 from "../../images/home/pix2.png"
@@ -286,13 +281,6 @@ function Home() {
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
                         // });
-
-                        const browserProvider = await detectEthereumProvider();
-                        const provider = new BrowserProvider(browserProvider);
-
-                        const accounts = await browserProvider.request({
-                            method: 'eth_requestAccounts',
-                        });
 
                         const aproveHash = await VSGContract.methods.approve(process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)).send({
                             from: address

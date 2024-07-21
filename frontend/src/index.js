@@ -16,17 +16,20 @@ import './index.css';
 import App from './App';
 import UIContextProvider from './context/UIcontext';
 import { store } from "./redux-toolkit/store";
+import { publicProvider } from 'wagmi/providers/public'
 
 
 const chains = [mainnet, sepolia]
 const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
 
 
-const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
+// const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
+const { publicClient, webSocketPublicClient } = configureChains(chains, [publicProvider()])
 const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ projectId, chains }),
-  publicClient
+  publicClient,
+  webSocketPublicClient
 })
 const ethereumClient = new EthereumClient(wagmiConfig, chains)
 
