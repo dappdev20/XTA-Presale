@@ -15,7 +15,7 @@ import {
 } from 'wagmi';
 import { formatUnits, parseUnits, parseEther, formatEther } from "viem";
 import { mainnet, sepolia } from 'wagmi/chains';
-import { readContract, waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
+import { readContract, waitForTransaction } from '@wagmi/core'
 import { Backdrop, CircularProgress } from "@mui/material";
 import Web3 from "web3";
 
@@ -42,10 +42,9 @@ import { socket } from "../../App";
 // Import Swiper styles
 import "./Home.css"
 
-const web3 = new Web3(window.ethereum)
+
 const buyModes = ["byETH", "byVSG"];
 const definedPresalePrices = [0.006, 0.0075, 0.009];
-let approveData = false;
 
 function Home() {
     const { isLoading: isSwitchingLoading, switchNetwork } = useSwitchNetwork()
@@ -91,8 +90,6 @@ function Home() {
     const [presaleTxHash, setPresaleTxHash] = useState("");
     const [presalePriceOfPhase, setPresalePriceOfPhase] = useState(0);
     const chainId = 11155111;
-
-    const VSGContract = new web3.eth.Contract(TokenABI, process.env.REACT_APP_VSG_ADDRESS);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -260,76 +257,55 @@ function Home() {
                     return;
                 }
 
-                if (!approveData) {
-                    const allowance = await readContract({
+                const allowance = await readContract({
+                    address: process.env.REACT_APP_VSG_ADDRESS,
+                    abi: TokenABI,
+                    functionName: 'allowance',
+                    args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
+                })
+                if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(debouncedInputAmount)) {
+                    
+                    const aproveHash = await walletClient.writeContract({
                         address: process.env.REACT_APP_VSG_ADDRESS,
                         abi: TokenABI,
-                        functionName: 'allowance',
-                        args: [address, process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS],
-                    })
-                    if (parseFloat(formatUnits(allowance !== undefined && allowance?.toString(), 18)) < parseFloat(outputAmount)) {
-                        // const config = await prepareWriteContract({
-                        //     address: process.env.REACT_APP_VSG_ADDRESS,
-                        //     chainId: chain.id,
-                        //     abi: TokenABI,
-                        //     functionName: "approve",
-                        //     args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], 
-                        //     wallet: address,
-                        // });
-                        // const aproveHash = await writeContract(config);
-                        // setApprovingTxHash(aproveHash.hash);
+                        functionName: "approve",
+                        args: [process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)], wallet: address,
+
+                    });
+                    setApprovingTxHash(aproveHash);
                         // const waitHash = await waitForTransaction({
                         //     hash: aproveHash,
                         // });
 
-                        const aproveHash = await VSGContract.methods.approve(process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS, parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)).send({
-                            from: address
-                        });
-                        console.log('[DM] approvehash = ', aproveHash);
-                        toast.success("approvehash!!!");
-                        setApprovingTxHash(aproveHash.transactionHash);
-                        setWorking(false);
-                    }
-
-                } else if (approveData) {
-                    const config = await prepareWriteContract({
+                    
+                } else {
+                    const presaleHash = await walletClient.writeContract({
                         address: process.env.REACT_APP_PRESALE_PLATFORM_ADDRESS,
-                        chainId: chain.id,
                         abi: PresalePlatformABI,
                         functionName: 'buyTokensWithVSG',
                         args: [parseUnits(debouncedInputAmount !== undefined && debouncedInputAmount?.toString(), 18)],
-                     });
-                    const presaleHash = await writeContract(config);
+    
+                    })
 
-                    setPresaleTxHash(presaleHash.hash);
-
-                    // const waitHash = await waitForTransaction({
-                    //     hash: presaleHash,
-                    // });
+                    setPresaleTxHash(presaleHash);
                 }
-                // setPresaleTxHash(presaleHash);
+                
                 
             }
         } catch (err) {
             setWorking(false);
-            if (approvingTxHash) {
-                setApprovingTxHash(null);
-            }
-                
-            else if (presaleTxHash) {
-                setPresaleTxHash(null);
-            }
             console.error(err);
         }
     }
 
     const getButtonText = () => {
-        if (approveData) {
-            return "Confirming...";
-        } else if (approvingTxHash) {
-            return "Approving...";
+        if (approvingTxHash && !presaleTxHash) {
+            return "Approving ...";
+        } else if (!approvingTxHash && presaleTxHash) {
+            return "Confirming ...";
         }
-        return "Buy with VSG";
+        let buttonTitle = "Buy with VSG";
+        return buttonTitle;
       }
 
     const onClickWithdraw = async () => {
@@ -346,22 +322,19 @@ function Home() {
         getButtonText();
         (async () => {
             if (approvingTxHash) {
-                approveData = true;
-                // setTimeout(async () => {
-                //     try {
-                //         const receipt = await confirmTransactionReceipt(approvingTxHash);
-                //         console.log(receipt);
-                //         setApprovingTxHash(null);
-                //         toast.success("You've approved your VSG to presale contract!");
-                //         setWorking(false);
-                //         approveData = true;
-                //     } catch (err) {
-                //         setWorking(false);
-                //         setApprovingTxHash(null);
-                //         console.log(err);
-                //         approveData = false;
-                //     }
-                // }, 3000);
+                setTimeout(async () => {
+                    try {
+                        const receipt = await confirmTransactionReceipt(approvingTxHash);
+                        console.log(receipt);
+                        setApprovingTxHash(null);
+                        setWorking(false);
+                        toast.success("You've approved your VSG to presale contract!");
+                    } catch (err) {
+                        setWorking(false);
+                        // setApprovingTxHash(null);
+                        console.log(err);
+                    }
+                }, 3000);
             }
             if (presaleTxHash) {
                 setTimeout(async () => {
@@ -371,13 +344,11 @@ function Home() {
                         setInputAmount(0);
                         setOutputAmount(0);
                         setWorking(false);
-                        setPresaleTxHash(null);
                         setApprovingTxHash(null);
+                        setPresaleTxHash(null);
                         toast.success("You've successfully bought XTA coins.");
-                        approveData = false;
                     } catch (err) {
                         setWorking(false);
-                        setApprovingTxHash(null);
                         setPresaleTxHash(null);
                         console.log(err);
                     }
